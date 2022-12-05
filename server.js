@@ -1,11 +1,13 @@
 
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import cors from 'cors';
 
 
 const app = express();
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
+app.use(cors());
 
 
 
@@ -43,19 +45,13 @@ app.get('/', (req, res) => {
 })
 
 app.post('/signin', (req,res) => {
-	// bcrypt.compare("apples", '' function(err, hash) {
-	// 	console.log('1st guess', res);
-	// });
-	// bcrypt.compare("veggies", '' function(err, hash){
-	// 	console.log('2nd guess - wrong password', res);
-	// });
-	if (req.body.email === db.users[0].email &&
-		req.body.password === db.users[0].password) {
+	if (req.body.email === database.users[0].email &&
+		req.body.password === database.users[0].password) {
 		res.json('success');
 	} else {
 		res.status(400).json('error logging in');
 	}
-	res.json('signin');
+	// res.json('signin');
 })
 
 app.post('/register', (req, res) => {
