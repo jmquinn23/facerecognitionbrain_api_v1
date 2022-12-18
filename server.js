@@ -2,9 +2,29 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import cors from 'cors';
+import knex from 'knex';
+import handleRegister from './Controllers/register.js';
+import handleSignin from './Controllers/signin.js';
+import handleProfile from './Controllers/profile.js';
+import {handleImage, handleApiCall} from './Controllers/image.js';
+
+const db = knex({
+	client: 'pg',
+	connection: {
+		host: '127.0.0.1',
+		user: 'postgres',
+		password: 'Ollie$0819',
+		database: 'smart_brain'
+	}
+});
+
+db.select('*').from('users').then(data => {
+	console.log(data);
+});
 
 
 const app = express();
+
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
@@ -17,86 +37,42 @@ const database = {
 		{
 			id: '123',
 			name: 'John',
-			email: 'John@gmail.com',
 			password: 'cookies',
+			email: 'John@gmail.com',			
 			entries: 0,
 			joined: new Date()
 		},
 		{
 			id: '124',
 			name: 'Sylvia',
-			email: 'Sylvia@gmail.com',
 			password: 'icecream',
+			email: 'Sylvia@gmail.com',			
 			entries: 0,
 			joined: new Date()
 		}
-	],
-	login: [
-		{
-			id: '987',
-			hash: '',
-			email: 'john@gmail.com'
-		}
 	]
+	// login: [
+	// 	{
+	// 		id: '987',
+	// 		hash: '',
+	// 		email: 'john@gmail.com'
+	// 	}
+	// ]
 }
 
 app.get('/', (req, res) => {
 	res.send(database.users);
 })
 
-app.post('/signin', (req,res) => {
-	if (req.body.email === database.users[0].email &&
-		req.body.password === database.users[0].password) {
-		res.json('success');
-	} else {
-		res.status(400).json('error logging in');
-	}
-	// res.json('signin');
-})
+app.post('/signin', (req, res) => { handleSignin(req, res, db, bcrypt)})
 
-app.post('/register', (req, res) => {
-	const {name, email, password} = req.body;	
-	// console.log(name, email, password);
-	database.users.push({
-			id: '125',
-			name: name,
-			email: email,
-			password: password,
-			entries: 0,
-			joined: new Date()
-	})
-	res.json(database.users[database.users.length - 1]);
-})
+app.post('/register', (req, res) => { handleRegister(req, res, db, bcrypt)}) 
 
-app.get('/profile/:id', (req, res) => {	
-	console.log(req.body);
-	const { id } = req.params;
-	let found = false;
-	database.users.forEach(user => {
-		if (user.id === id) {
-			found = true;
-			return res.json(user);
-		} 
-	})
-	if (!found) {
-		res.status(400).json('not found');
-	}
-})
+app.get('/profile/:id', (req, res) => { handleProfile(req, res, db)})
 
-app.put('/image', (req, res) => {
-	const { id } = req.body;
-	let found = false;
-	database.users.forEach(user => {
-		if (user.id === id) {
-			found = true;
-			user.entries++
-			return res.json(user.entries);
-		} 
-	})
-	if (!found) {
-		res.status(400).json('not found');
-	}
-})
+app.put('/image', (req, res) => {handleImage(req, res, db)})
+
+app.post('/imageUrl', (req, res) => { handleApiCall(req, res)})
 
 app.listen(3001, () => {
 	console.log('app is running on 3001');
